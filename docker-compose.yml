@@ -1,0 +1,84 @@
+version: '3.8'
+
+networks: 
+  laravel:
+    name: laravel
+
+services: 
+  nginx:
+    build:
+      context: .
+      dockerfile: nginx.dockerfile
+    container_name : laravel_nginx
+    tty: true
+    depends_on:
+      - php
+      - mysql
+    ports: 
+      #- 1010:80 #if i need to run it by 1010 port
+      - 80:80
+      - 443:443
+    volumes:
+      - ./src:/var/www/html  
+    networks:
+      - laravel
+      
+  php:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: laravel_php
+    restart: unless-stopped
+    tty: true
+    volumes:
+      - ./src:/var/www/html
+    networks:
+      - laravel
+
+  mysql:
+    image: mysql:latest
+    container_name: laravel_mysql
+    ports:
+      - 3306:3306
+    volumes:
+      - ./mysql:/var/lib/mysql  
+    environment:
+      MYSQL_DATABASE: docker_laravel
+      MYSQL_USER: laravel
+      MYSQL_PASSWORD: secret
+      MYSQL_ROOT_PASSWORD: secret
+    networks:
+      - laravel
+
+  composer:
+    image: composer:latest
+    container_name: laravel_composer
+    volumes:
+      - ./src:/var/www/html
+    working_dir: /var/www/html   
+    networks:
+      - laravel
+
+  artisan:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: laravel_artisan
+    volumes:
+      - ./src:/var/www/html
+    working_dir: /var/www/html
+    entrypoint: ["php", "artisan"]
+    networks:
+      - laravel
+
+  npm:
+    image: node:20.11.1
+    container_name: laravel_npm  
+    volumes:
+      - ./src:/var/www/html
+    working_dir: /var/www/html
+    entrypoint: ['npm']
+    networks:
+      - laravel
+   
+  
