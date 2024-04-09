@@ -4,18 +4,18 @@ networks:
   laravel:
     name: laravel
 
+
 services: 
   nginx:
     build:
       context: .
       dockerfile: nginx.dockerfile
-    container_name : laravel_nginx
+    container_name : blog_nginx
     tty: true
     depends_on:
       - php
       - mysql
     ports: 
-      #- 1010:80 #if i need to run it by 1010 port
       - 80:80
       - 443:443
     volumes:
@@ -27,7 +27,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: laravel_php
+    container_name: blog_php
     restart: unless-stopped
     tty: true
     volumes:
@@ -37,7 +37,7 @@ services:
 
   mysql:
     image: mysql:latest
-    container_name: laravel_mysql
+    container_name: blog_mysql
     ports:
       - 3306:3306
     volumes:
@@ -52,10 +52,13 @@ services:
 
   composer:
     image: composer:latest
-    container_name: laravel_composer
+    container_name: blog_composer
     volumes:
       - ./src:/var/www/html
-    working_dir: /var/www/html   
+    working_dir: /var/www/html 
+    command: ["install", "--ignore-platform-reqs"]
+    depends_on:
+      - php  
     networks:
       - laravel
 
@@ -63,7 +66,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: laravel_artisan
+    container_name: blog_artisan
     volumes:
       - ./src:/var/www/html
     working_dir: /var/www/html
@@ -71,9 +74,45 @@ services:
     networks:
       - laravel
 
+  redis:
+    image: 'redis:alpine'
+    container_name: blog_redis
+    restart: unless-stopped
+    ports:
+      - '6379:6379'
+    volumes:
+      - './redisdata:/data'
+    networks:
+      - laravel
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      retries: 3
+      timeout: 5s 
+
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: blog_mailpit
+    ports:
+      - 1025:1025
+      - 8025:8025
+    networks:
+      - laravel       
+
+  soketi:
+    image: 'quay.io/soketi/soketi:latest-16-alpine'
+    container_name: blog_soketi
+    environment:
+      SOKETI_DEBUG: '1'
+      SOKETI_METRICS_SERVER_PORT: '9601'
+    ports:
+      - '${PUSHER_PORT:-6001}:6001'
+      - '${SOKETI_METRICS_SERVER_PORT:-9601}:9601'
+    networks:
+      - laravel
+
   npm:
     image: node:20.11.1
-    container_name: laravel_npm  
+    container_name: blog_npm  
     volumes:
       - ./src:/var/www/html
     working_dir: /var/www/html
