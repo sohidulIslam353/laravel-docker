@@ -1,1 +1,4 @@
-mysql
+mysql/*
+jenkins/*
+elasticsearch/*
+redisdata/*

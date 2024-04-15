@@ -119,5 +119,29 @@ services:
     entrypoint: ['npm']
     networks:
       - laravel
+
+  jenkins:
+    image: jenkins/jenkins:lts
+    container_name: blog_jenkins
+    ports:
+      - '8080:8080'
+      - '50000:50000'
+    volumes:
+      - './jenkins:/var/jenkins_home'
+    networks:
+      - laravel 
+      
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.10.1
+    container_name: blog_elasticsearch
+    environment:
+      - discovery.type=single-node
+    volumes:
+      - './elasticsearch:/usr/share/elasticsearch/data'
+    ports:
+      - '9200:9200'
+      - '9300:9300'
+    networks:
+      - laravel       
    
   
