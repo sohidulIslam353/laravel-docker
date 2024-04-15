@@ -2,3 +2,7 @@ mysql/*
 jenkins/*
 elasticsearch/*
 redisdata/*
+sonarqube_bundled-plugins/*
+sonarqube_conf/*
+sonarqube_data/*
+sonarqube_extensions/*
