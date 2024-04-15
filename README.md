@@ -1,4 +1,4 @@
-after cloning this project run
+After cloning this project , inside into this project and run
 **
 docker compose up -d --build
 **
